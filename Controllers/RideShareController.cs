@@ -6,8 +6,9 @@ namespace AdessoRideShare.Controllers
     [Route("api/[controller]")]
     public class RideShareController : ControllerBase
     {
-        private List<Travel> Travels = new List<Travel>();
-       
+        private static List<Travel> Travels = new List<Travel>();
+        private static int PeopleCount = 0;
+
         private readonly ILogger<RideShareController> _logger;
 
         public RideShareController(ILogger<RideShareController> logger)
@@ -16,25 +17,36 @@ namespace AdessoRideShare.Controllers
         }
 
         [HttpPost]
+        /* Kayýt eklemek için oluþturulmuþtur */
         public ActionResult Post(Travel entity)
         {
+            if (String.IsNullOrEmpty(entity.Start) || String.IsNullOrEmpty(entity.Destination))
+            {
+                return BadRequest("Nereden Nereye bilgisi girmelisiniz");
+            }
+            if (entity.NumberOfSeat == 0)
+            {
+                return BadRequest("Koltuk sayýsý 0 olamaz");
+            }
+
             var tempEntity = new Travel
             {
                 Start = entity.Start.ToUpper(),
-                Date = entity.Date,
+                Date = entity.Date == null ? DateTime.Now : entity.Date,
                 Destination = entity.Destination.ToUpper(),
                 NumberOfSeat = entity.NumberOfSeat,
-                Id = Travels.Max(x => x.Id) + 1,
+                Id = Travels.Count != 0 ? Travels.Max(x => x.Id) + 1 : 1,
                 Active = null //yayýna alýnmamýþ
             };
 
-            Travels.Add(tempEntity);  
+            Travels.Add(tempEntity);
 
-            return CreatedAtAction("Get", new { id = entity.Id }, entity);
+            return Ok(tempEntity);
         }
 
         [HttpPut("{Id}")]
-        public ActionResult Put(int Id)  // yayýna alma iþlemini activitesi true olduðunda olacak þekilde kurguladým.
+        /* Yayýna alma iþlemi */
+        public ActionResult Put(int Id)
         {
             var travel = Travels.FirstOrDefault(p => p.Id == Id);
             if (travel is null)
@@ -43,25 +55,28 @@ namespace AdessoRideShare.Controllers
             }
 
             travel.Active = true;
-            return NoContent();
+            return Ok("Yayýna alma iþlemi baþarýlý");
+
         }
 
         [HttpDelete("{Id}")]
-        public ActionResult Delete(int Id) // tamamen silmek yerine travellarýn pasife alýnmasý ile tasarladým.
+        // Pasife alarak silme iþlemi gerçekleþtirildi
+        public ActionResult Delete(int Id)
         {
             var travel = Travels.FirstOrDefault(p => p.Id == Id);
             if (travel is null) return NotFound();
 
             travel.Active = false;
-            return NoContent();
+            return Ok("Silme iþlemi baþarýlý");
         }
 
         [HttpGet("{start}/{destination}")]
-        public ActionResult<List<Travel>> Get(string start, string destinantion)
+        // Arama iþlemi 
+        public ActionResult<List<Travel>> Get(string start, string destination)
         {
-            if (start is not null && destinantion is not null)
+            if (start is not null && destination is not null)
             {
-                return Travels.Where(p => p.Start.Contains(start.ToUpper()) && p.Destination.Contains(destinantion.ToUpper())).ToList();
+                return Travels.Where(p => p.Start.Contains(start.ToUpper()) && p.Destination.Contains(destination.ToUpper()) && p.Active == true).ToList();
             }
             else
             {
@@ -69,11 +84,33 @@ namespace AdessoRideShare.Controllers
             }
         }
 
+        [HttpPost("{Id}")]
+        // Seyahate katýlma iþlemi
+        public ActionResult Join(int Id)
+        {
+            var travel = Travels.FirstOrDefault(p => p.Id == Id);
+            if (travel is null)
+            {
+                return NotFound();
+            }
+            if (travel.NumberOfSeat >= PeopleCount)
+            {
+                PeopleCount += 1;
+            }
+            else
+            {
+                return BadRequest("Ýþleminizi gerçekleþtiremiyoruz. Seyahatte yer kalmamýþtýr.");
+            }
+            return Ok("Katýlým Ýþleminiz Baþarýlý");
+        }
+
         [HttpGet]
+        // Tümünü getir
         public ActionResult<List<Travel>> GetAll()
         {
             return Travels.Where(p => p.Active == true).ToList();
         }
+
 
     }
 }
