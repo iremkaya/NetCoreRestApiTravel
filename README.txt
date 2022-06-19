@@ -6,7 +6,6 @@ Delete methodunda girlen id değerini listeden silmek yerine pasife alarak silme
 Join methodu ise bu güzergaha katılmak isteyen kişiler için geliştirilmiştir.
 
 
-Not: Uygulama da sadece apilerin yazılması istendiği için bir arayüz tasarımı ve repository pattern yardımıyla bir veritabanı bağlantısı yapılmamıştır. 
-Uygulama Swagger üzerinde çalışabilir durumdadır. ilk defa .NetCore uygulması geliştirdim umarım isterlerinizi karşılamıştır. :) 
+Not: 
+Uygulama Swagger üzerinde çalışabilir durumdadır. 
 
-Opsiyonel olan kısımdaki soru için algoritma öngörülerimi istenilen seviyede performasnlı olmayacağını değerlendirerek ilgili kısımla alakalı bir çözüm sunmadım.
